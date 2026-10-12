@@ -452,8 +452,26 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       '4. "quiz": 3 multiple-choice questions that check understanding, not memorization. Each has "question" (in ' + langLabel + '), "options" (exactly 4, in ' + langLabel + '), "correct_index" (integer 0-3), "explanation" (one sentence in ' + langLabel + ' on why the correct option is right).\n\n' +
       'Text to explain:\n"""\n' + text.slice(0, 4000) + '\n"""';
   }
-  }
 
+  /* ---------- helpers ---------- */
+  function toast(title, opts) {
+    opts = opts || {};
+    var el = document.createElement('div');
+    el.className = 'toast' + (opts.err ? ' err' : '');
+    el.innerHTML = '<div><b>' + esc(title) + '</b>' + (opts.desc ? esc(opts.desc) : '') + '</div>' + (opts.undo ? '<button type="button">Undo</button>' : '');
+    if (opts.undo) el.querySelector('button').addEventListener('click', function () { opts.undo(); el.remove(); });
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(function () { el.remove(); }, opts.undo ? 6000 : 3500);
+  }
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function sortDue(a, b) { var x = a.due_date || '9999', y = b.due_date || '9999'; return x < y ? -1 : x > y ? 1 : 0; }
+  function go(route) { UI.route = route; UI.menu = null; window.scrollTo(0, 0); render(); }
+  function fmtTime(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  function sel(list, cur) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === cur ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
+  function langOptions(cur) { return LANGS.map(function (l) { return '<option value="' + l[0] + '"' + (l[0] === cur ? ' selected' : '') + '>' + l[2] + '  ' + esc(l[1]) + '</option>'; }).join(''); }
+  function head(icon, title, sub, cls) {
+    return '<div class="pagehead"><div class="titlerow"><span class="chip-ico ' + (cls || '') + '">' + ico(icon) + '</span><h1>' + title + '</h1></div><p class="sub">' + sub + '</p></div>';
+  }
 
   /* ---------- views ---------- */
   function vHome() {
