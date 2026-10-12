@@ -379,17 +379,15 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
   }
 
   /* ---------- AI ---------- */
-      // 1. 設定你的 Cloudflare Worker 網址（✨ 已經幫你移除結尾的斜線 /，解決連線錯誤問題）
   var WORKER_URL = 'https://wispy-field-ff7e.hehehaha125113.workers.dev';
 
-  // 2. 微調後的全新 ai 函式，能完美接收來自 Worker 的詳細錯誤字串
   function ai(prompt, tier) {
     return fetch(WORKER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ prompt: String(prompt) }) // 確保提示詞強制轉為標準字串
+      body: JSON.stringify({ prompt: String(prompt) })
     })
     .then(function (response) {
       if (!response.ok) {
@@ -398,7 +396,6 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       return response.json();
     })
     .then(function (data) {
-      // ✨ 這裡微調了：如果 Worker 回傳 data.error，直接把它丟出，讓手機畫面的紅框顯示出真正原因
       if (data && data.error) {
         throw new Error(data.error);
       }
@@ -428,7 +425,6 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
     .catch(function (e) {
       var msg = e && e.message;
       if (msg === 'invalid_json') throw new Error('The answer came back garbled. Try again.');
-      // ✨ 讓手機彈出的錯誤訊息直接顯示最真實的後台回報
       throw new Error(msg || 'Something went wrong. Try again.');
     });
   }
@@ -450,28 +446,6 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       'Text to explain:\n"""\n' + text.slice(0, 4000) + '\n"""';
   }
 
-  }
-
-
-  /* ---------- helpers ---------- */
-  function toast(title, opts) {
-    opts = opts || {};
-    var el = document.createElement('div');
-    el.className = 'toast' + (opts.err ? ' err' : '');
-    el.innerHTML = '<div><b>' + esc(title) + '</b>' + (opts.desc ? esc(opts.desc) : '') + '</div>' + (opts.undo ? '<button type="button">Undo</button>' : '');
-    if (opts.undo) el.querySelector('button').addEventListener('click', function () { opts.undo(); el.remove(); });
-    document.getElementById('toasts').appendChild(el);
-    setTimeout(function () { el.remove(); }, opts.undo ? 6000 : 3500);
-  }
-  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
-  function sortDue(a, b) { var x = a.due_date || '9999', y = b.due_date || '9999'; return x < y ? -1 : x > y ? 1 : 0; }
-  function go(route) { UI.route = route; UI.menu = null; window.scrollTo(0, 0); render(); }
-  function fmtTime(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
-  function sel(list, cur) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === cur ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
-  function langOptions(cur) { return LANGS.map(function (l) { return '<option value="' + l[0] + '"' + (l[0] === cur ? ' selected' : '') + '>' + l[2] + '  ' + esc(l[1]) + '</option>'; }).join(''); }
-  function head(icon, title, sub, cls) {
-    return '<div class="pagehead"><div class="titlerow"><span class="chip-ico ' + (cls || '') + '">' + ico(icon) + '</span><h1>' + title + '</h1></div><p class="sub">' + sub + '</p></div>';
-  }
 
   /* ---------- views ---------- */
   function vHome() {
