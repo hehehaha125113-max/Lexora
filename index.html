@@ -1,0 +1,786 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Lexora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: phone-first app shell. Sticky brand bar on top, one scrolling column of cards, five-tab bar fixed at the bottom. */
+:root {
+  --bg: #fcfbf9;
+  --surface: #ffffff;
+  --fg: #1c1b2f;
+  --muted: #66657c;
+  --line: #e7e5ee;
+  --soft: #f3f1f8;
+  --primary: #5b4ee6;
+  --primary-fg: #ffffff;
+  --primary-soft: #eeecfd;
+  --sun: #d9890a;
+  --sun-soft: #fdf1da;
+  --good: #0c8a5c;
+  --good-soft: #e3f5ec;
+  --bad: #c92a42;
+  --bad-soft: #fdebee;
+  --info-soft: #e8f0fd;
+  --shadow: 0 1px 2px rgba(28, 27, 47, .05), 0 2px 8px rgba(28, 27, 47, .04);
+  --bl: 94%;
+  --tl: 30%;
+  --font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12111c; --surface: #1b1a29; --fg: #f1f0fa; --muted: #a5a4ba; --line: #2d2b41; --soft: #242238;
+    --primary: #9a91ff; --primary-fg: #15122e; --primary-soft: #2a2650;
+    --sun: #f5b441; --sun-soft: #3a2d12; --good: #4fd6a0; --good-soft: #12342a; --bad: #ff7a8c; --bad-soft: #3d1a22; --info-soft: #1a2640;
+    --shadow: 0 1px 2px rgba(0,0,0,.3); --bl: 21%; --tl: 80%;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12111c; --surface: #1b1a29; --fg: #f1f0fa; --muted: #a5a4ba; --line: #2d2b41; --soft: #242238;
+  --primary: #9a91ff; --primary-fg: #15122e; --primary-soft: #2a2650;
+  --sun: #f5b441; --sun-soft: #3a2d12; --good: #4fd6a0; --good-soft: #12342a; --bad: #ff7a8c; --bad-soft: #3d1a22; --info-soft: #1a2640;
+  --shadow: 0 1px 2px rgba(0,0,0,.3); --bl: 21%; --tl: 80%;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.5;
+  padding-inline: 0; padding-block: 0; -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg);
+  border-bottom: 1px solid var(--line); padding: 12px 16px;
+}
+.brand { max-width: 720px; margin: 0 auto; display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; letter-spacing: -.01em; }
+.logo { width: 32px; height: 32px; border-radius: 10px; background: var(--primary); color: var(--primary-fg); display: grid; place-items: center; }
+.logo svg { width: 18px; height: 18px; }
+main { max-width: 720px; margin: 0 auto; padding: 20px 16px 120px; min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 24px; }
+.stack-s { display: flex; flex-direction: column; gap: 10px; }
+
+.tabbar {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 30; background: var(--surface); border-top: 1px solid var(--line);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
+}
+.tabbar nav { max-width: 720px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; }
+.tab { background: none; border: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; color: var(--muted); font-size: 11px; font-weight: 600; }
+.tab svg { width: 22px; height: 22px; }
+.tab[aria-current="page"] { color: var(--primary); }
+
+.pagehead { display: flex; flex-direction: column; gap: 6px; }
+.titlerow { display: flex; align-items: center; gap: 10px; }
+.chip-ico { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); flex: none; }
+.chip-ico svg { width: 20px; height: 20px; }
+.chip-ico.sun { background: var(--sun-soft); color: var(--sun); }
+h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; text-wrap: balance; }
+h1.big { font-size: 30px; }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+h3 { font-size: 16px; font-weight: 700; }
+.sub { color: var(--muted); font-size: 14px; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.card.flat { box-shadow: none; }
+.card.center { text-align: center; color: var(--muted); font-size: 14px; padding: 22px 16px; }
+.card.link { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; width: 100%; text-align: left; font: inherit; cursor: pointer; }
+.card.link:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--line)); }
+.grow { flex: 1; min-width: 0; }
+.row { display: flex; align-items: center; gap: 10px; }
+.between { justify-content: space-between; }
+.wrap { flex-wrap: wrap; }
+.trunc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { display: flex; flex-direction: column; gap: 8px; padding: 14px; }
+.stat .ico { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; }
+.stat .ico svg { width: 19px; height: 19px; }
+.stat b { font-size: 26px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+.ico.amber { background: var(--sun-soft); color: var(--sun); }
+.ico.blue { background: var(--info-soft); color: var(--primary); }
+.ico.violet { background: var(--primary-soft); color: var(--primary); }
+@media (max-width: 340px) { .stats { grid-template-columns: 1fr; } .stat { flex-direction: row; align-items: center; gap: 14px; } .stat div { display: flex; flex-direction: column; } }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; padding: 0 16px; height: 42px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.btn svg { width: 17px; height: 17px; flex: none; }
+.btn.primary { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.ghost:hover { background: var(--soft); }
+.btn.danger { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.btn.danger-o { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, var(--line)); }
+.btn.sm { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
+.btn.lg { height: 48px; font-size: 15px; width: 100%; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.iconbtn { background: none; border: 0; border-radius: 8px; padding: 4px; color: var(--muted); display: grid; place-items: center; }
+.iconbtn:hover { background: var(--soft); color: var(--fg); }
+.iconbtn svg { width: 18px; height: 18px; }
+
+label, .lbl { font-size: 14px; font-weight: 600; display: block; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+input[type=text], input[type=number], input[type=date], select, textarea {
+  width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 12px; min-height: 42px;
+}
+textarea { resize: vertical; min-height: 130px; line-height: 1.5; }
+input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 460px) { .grid2 { grid-template-columns: 1fr; } }
+
+.seg { display: grid; background: var(--soft); border-radius: 12px; padding: 4px; gap: 2px; }
+.seg button { border: 0; background: none; border-radius: 9px; padding: 8px 6px; font-weight: 600; font-size: 13.5px; color: var(--muted); }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--fg); box-shadow: var(--shadow); }
+
+.badge { display: inline-flex; align-items: center; border-radius: 8px; padding: 1px 8px; font-size: 12px; font-weight: 600; border: 1px solid hsl(var(--h) var(--s, 70%) calc(var(--bl) - 8%)); background: hsl(var(--h) var(--s, 70%) var(--bl)); color: hsl(var(--h) 65% var(--tl)); }
+.badge.p-high { --h: 350; } .badge.p-medium { --h: 38; } .badge.p-low { --h: 215; --s: 15%; }
+.s-math { --h: 217; } .s-science { --h: 160; } .s-english { --h: 262; } .s-social_studies { --h: 38; } .s-history { --h: 22; }
+.s-chemistry { --h: 175; } .s-biology { --h: 142; } .s-physics { --h: 190; } .s-language { --h: 330; } .s-art { --h: 345; }
+.s-computer_science { --h: 238; } .s-other { --h: 215; --s: 15%; }
+
+.task { display: flex; gap: 12px; align-items: flex-start; }
+.task.done { opacity: .72; }
+.statusbtn { margin-top: 2px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); display: grid; place-items: center; flex: none; padding: 0; color: #fff; }
+.statusbtn:hover { border-color: var(--primary); }
+.statusbtn.in_progress { border-color: var(--primary); background: var(--primary-soft); }
+.statusbtn.in_progress::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.statusbtn.completed { background: var(--good); border-color: var(--good); }
+.statusbtn svg { width: 14px; height: 14px; }
+.task .t { font-weight: 600; overflow-wrap: anywhere; }
+.task.done .t { text-decoration: line-through; color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; font-size: 12px; color: var(--muted); font-weight: 500; }
+.meta .late { color: var(--bad); font-weight: 700; }
+.meta svg { width: 12px; height: 12px; vertical-align: -1px; }
+.steps { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.step { display: flex; align-items: center; gap: 10px; background: var(--soft); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.step input { width: 18px; height: 18px; accent-color: var(--primary); flex: none; }
+.step.done span { text-decoration: line-through; color: var(--muted); }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--muted); font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; }
+.linkbtn svg { width: 13px; height: 13px; }
+.linkbtn:hover { color: var(--fg); }
+.menuwrap { position: relative; }
+.menu { position: absolute; right: 0; top: 30px; z-index: 10; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.16); padding: 4px; min-width: 140px; }
+.menu button { display: flex; width: 100%; align-items: center; gap: 8px; border: 0; background: none; padding: 8px 10px; border-radius: 8px; font-size: 14px; text-align: left; }
+.menu button:hover { background: var(--soft); }
+.menu button.red { color: var(--bad); }
+.menu svg { width: 15px; height: 15px; }
+
+.modalback { position: fixed; inset: 0; z-index: 50; background: rgba(10, 9, 20, .55); display: flex; align-items: flex-end; justify-content: center; }
+.modal { background: var(--surface); width: 100%; max-width: 520px; max-height: 92%; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 640px) { .modalback { align-items: center; } .modal { border-radius: 20px; padding-bottom: 20px; } }
+
+.toasts { position: fixed; z-index: 60; inset-inline: 0; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; align-items: center; gap: 8px; padding-inline: 16px; pointer-events: none; }
+.toast { pointer-events: auto; max-width: 420px; width: 100%; background: var(--fg); color: var(--bg); border-radius: 14px; padding: 12px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.25); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.toast.err { background: var(--bad); color: #fff; }
+.toast b { display: block; font-weight: 700; }
+.toast button { background: none; border: 0; color: inherit; font-weight: 700; text-decoration: underline; }
+
+.presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.preset { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 12px 0; font-weight: 600; }
+.preset[aria-pressed="true"] { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+.timerwrap { display: flex; flex-direction: column; align-items: center; gap: 22px; padding-block: 8px; }
+.ring { position: relative; width: min(288px, 76vw); aspect-ratio: 1; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .track { stroke: var(--soft); }
+.ring .prog { stroke: var(--primary); transition: stroke-dashoffset .3s linear; }
+.ring .time { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring .time b { font-size: clamp(44px, 14vw, 62px); font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+.ring .time span { color: var(--muted); font-size: 14px; margin-top: 6px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; background: var(--soft); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 13px; }
+.pill button { border: 0; background: none; padding: 2px; display: grid; color: var(--muted); border-radius: 50%; }
+.pill button svg { width: 14px; height: 14px; }
+.pill.static { padding: 4px 12px; }
+.session-ico { width: 36px; height: 36px; border-radius: 12px; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; flex: none; }
+.session-ico svg { width: 17px; height: 17px; }
+.done-banner { background: var(--good-soft); display: flex; gap: 14px; align-items: center; }
+.done-banner .ico { width: 46px; height: 46px; border-radius: 14px; background: var(--good); color: #fff; display: grid; place-items: center; flex: none; }
+.done-banner .ico svg { width: 24px; height: 24px; }
+.radios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 520px) { .radios { grid-template-columns: 1fr; } }
+.radio { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.radio small { font-weight: 400; color: var(--muted); font-size: 12px; }
+.radio:has(input:checked) { border-color: var(--primary); background: var(--primary-soft); }
+.radio input { accent-color: var(--primary); margin-right: 8px; }
+
+.chipbtn { border: 1px solid var(--line); background: var(--soft); color: var(--muted); border-radius: 999px; padding: 4px 12px; font-size: 12px; text-align: left; }
+.chipbtn:hover { color: var(--fg); }
+.rtl { direction: rtl; text-align: right; }
+.prose { white-space: pre-wrap; line-height: 1.65; overflow-wrap: anywhere; }
+.vgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.term b { font-weight: 700; }
+.term .ex { font-style: italic; color: var(--muted); font-size: 14px; margin-top: 4px; }
+.opt { display: flex; width: 100%; gap: 12px; align-items: center; border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 10px 12px; text-align: start; font-size: 14px; }
+.opt .k { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex: none; }
+.opt .k svg { width: 15px; height: 15px; }
+.opt.sel { border-color: var(--primary); background: var(--primary-soft); }
+.opt.sel .k { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+.opt.ok { border-color: var(--good); background: var(--good-soft); }
+.opt.ok .k { background: var(--good); border-color: var(--good); color: #fff; }
+.opt.no { border-color: var(--bad); background: var(--bad-soft); }
+.opt.no .k { background: var(--bad); border-color: var(--bad); color: #fff; }
+.opt.dim { opacity: .6; }
+.why { display: flex; gap: 8px; background: var(--sun-soft); border-radius: 12px; padding: 10px 12px; font-size: 14px; margin-top: 10px; }
+.why svg { width: 16px; height: 16px; flex: none; margin-top: 3px; color: var(--sun); }
+.spin { width: 18px; height: 18px; border: 2px solid var(--line); border-top-color: var(--primary); border-radius: 50%; animation: sp .8s linear infinite; display: inline-block; flex: none; }
+@keyframes sp { to { transform: rotate(360deg); } }
+.btn .spin { border-color: color-mix(in srgb, var(--primary-fg) 35%, transparent); border-top-color: var(--primary-fg); }
+.danger-zone { border-color: color-mix(in srgb, var(--bad) 35%, var(--line)); }
+.danger-zone h3 { color: var(--bad); }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2s; } .ring .prog { transition: none; } }
+</style>
+
+<header class="topbar"><div class="brand"><span class="logo" id="logo"></span>Lexora</div></header>
+<main id="view" aria-live="polite"></main>
+<div class="tabbar"><nav id="tabs" aria-label="Main"></nav></div>
+<div id="modal"></div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- icons ---------- */
+  var P = {
+    grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>',
+    lang: '<path d="m5 8 6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>',
+    clip: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
+    timer: '<path d="M10 2h4M12 14l3-3"/><circle cx="12" cy="14" r="8"/>',
+    gear: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    plus: '<path d="M5 12h14M12 5v14"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    up: '<path d="m18 15-6-6-6 6"/>',
+    down: '<path d="m6 9 6 6 6-6"/>',
+    arrow: '<path d="M5 12h14m-7-7 7 7-7 7"/>',
+    play: '<path d="m6 3 14 9-14 9z"/>',
+    pause: '<path d="M14 4h4v16h-4zM6 4h4v16H6z"/>',
+    trash: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+    more: '<path d="M12 12h.01M12 5h.01M12 19h.01" stroke-width="3"/>',
+    pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+    sparkles: '<path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/>',
+    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    undo: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8M3 3v5h5"/>',
+    bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4"/>',
+    bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16zM12 7v6M9 10h6"/>',
+    skip: '<path d="M5 4l10 8-10 8zM19 5v14"/>',
+    ok: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    ban: '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+    list: '<path d="M3 5h.01M3 12h.01M3 19h.01M8 5h13M8 12h13M8 19h13"/>'
+  };
+  function ico(n, extra) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"' + (extra || '') + '>' + P[n] + '</svg>';
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  /* ---------- constants ---------- */
+  var SUBJECTS = [['math', 'Math'], ['science', 'Science'], ['english', 'English'], ['social_studies', 'Social Studies'], ['history', 'History'], ['chemistry', 'Chemistry'], ['biology', 'Biology'], ['physics', 'Physics'], ['language', 'Language'], ['art', 'Art'], ['computer_science', 'Computer Science'], ['other', 'Other']];
+  var TYPES = [['homework', 'Homework'], ['exam', 'Exam'], ['project', 'Project'], ['study', 'Study'], ['reading', 'Reading'], ['other', 'Other']];
+  var PRIOS = [['low', 'Low'], ['medium', 'Medium'], ['high', 'High']];
+  var STATUS = { not_started: 'Not Started', in_progress: 'In Progress', completed: 'Completed' };
+  var FLOW = ['not_started', 'in_progress', 'completed'];
+  var LANGS = [['en', 'English', '🇺🇸', false, 'English'], ['es', 'Spanish', '🇪🇸', false, 'Spanish (Español)'], ['zh', '中文', '🇨🇳', false, 'Chinese (中文), Simplified or Traditional as appropriate'], ['ja', '日本語', '🇯🇵', false, 'Japanese (日本語)'], ['ko', '한국어', '🇰🇷', false, 'Korean (한국어)'], ['ar', 'العربية', '🇸🇦', true, 'Arabic (العربية)']];
+  var SAMPLES = ['Explain the difference between photosynthesis and cellular respiration.', 'Write a 3-paragraph essay analyzing the theme of friendship in Of Mice and Men.', 'A train travels 240 km in 4 hours. What is its average speed in km/h?'];
+  var FILTERS = [['today', 'Today'], ['upcoming', 'Upcoming'], ['all', 'All Active'], ['completed', 'Completed']];
+  var NAV = [['home', 'Home', 'grid'], ['language', 'Language', 'lang'], ['planner', 'Planner', 'clip'], ['focus', 'Focus', 'timer'], ['settings', 'Settings', 'gear']];
+  function lname(l) { for (var i = 0; i < LANGS.length; i++) if (LANGS[i][0] === l) return LANGS[i]; return LANGS[0]; }
+  function sname(v) { for (var i = 0; i < SUBJECTS.length; i++) if (SUBJECTS[i][0] === v) return SUBJECTS[i][1]; return 'Other'; }
+  function sval(v) { return SUBJECTS.some(function (s) { return s[0] === v; }) ? v : 'other'; }
+  function pname(v) { return v === 'high' ? 'High' : v === 'low' ? 'Low' : 'Medium'; }
+
+  /* ---------- dates ---------- */
+  function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function today() { return ymd(new Date()); }
+  function plusDays(n) { var d = new Date(); d.setDate(d.getDate() + n); return ymd(d); }
+  function dueLabel(str, long) {
+    if (!str) return '';
+    var d = new Date(str + 'T00:00:00'), t = new Date(); t.setHours(0, 0, 0, 0);
+    var diff = Math.round((d - t) / 86400000);
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Tomorrow';
+    if (diff < 0) return Math.abs(diff) + 'd overdue';
+    if (diff < 7) return long ? 'In ' + diff + ' days' : 'In ' + diff + 'd';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3); }
+
+  /* ---------- state ---------- */
+  var S = { tasks: [], sessions: [], vocab: [], settings: { lang: 'es', minutes: 25 } };
+  var UI = {
+    route: 'home', filter: 'today', tab: 'explain', studioLang: null, input: '', loading: false, result: null, saved: {},
+    answers: {}, checked: false, menu: null, open: {}, breaking: {}, modal: null,
+    f: { mode: 'setup', taskId: 'free', minutes: 25, remaining: 0, endAt: 0, sessionId: null, dist: [], actual: 0 },
+    refl: { reflection_what_completed: '', reflection_what_difficult: '', reflection_understood: '', reflection_next_step: '' },
+    draft: null, confirmDelete: false
+  };
+  var tick = null;
+
+  function seed() {
+    var n = new Date().toISOString();
+    S.tasks = [
+      { id: uid(), title: 'Math problem set 4', subject: 'math', type: 'homework', due_date: today(), priority: 'high', estimated_minutes: 60, status: 'not_started', steps: [], notes: 'Example task. Edit or delete it.', created: n, updated: n },
+      { id: uid(), title: 'Read Chapter 5: Of Mice and Men', subject: 'english', type: 'reading', due_date: plusDays(1), priority: 'medium', estimated_minutes: 40, status: 'not_started', steps: [], notes: '', created: n, updated: n },
+      { id: uid(), title: 'Chemistry exam review', subject: 'chemistry', type: 'exam', due_date: plusDays(2), priority: 'high', estimated_minutes: 90, status: 'in_progress', steps: [], notes: '', created: n, updated: n },
+      { id: uid(), title: 'History essay outline', subject: 'history', type: 'project', due_date: plusDays(7), priority: 'low', estimated_minutes: 45, status: 'not_started', steps: [], notes: '', created: n, updated: n }
+    ];
+  }
+
+  /* ---------- persistence: viewer's private db doc, localStorage as fallback ---------- */
+  var dbRef = null, saveTimer = null, KEY = 'lexora.v1';
+  function persist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* storage unavailable */ }
+      if (dbRef) { dbRef.set(JSON.parse(JSON.stringify(S))).catch(function () { }); }
+    }, 300);
+  }
+  function adopt(o) {
+    if (!o || typeof o !== 'object') return false;
+    S.tasks = Array.isArray(o.tasks) ? o.tasks : [];
+    S.sessions = Array.isArray(o.sessions) ? o.sessions : [];
+    S.vocab = Array.isArray(o.vocab) ? o.vocab : [];
+    S.settings = Object.assign({ lang: 'es', minutes: 25 }, o.settings || {});
+    return true;
+  }
+  function boot() {
+    var had = false;
+    try { var raw = localStorage.getItem(KEY); if (raw) had = adopt(JSON.parse(raw)); } catch (e) { }
+    if (!had) seed();
+    UI.f.minutes = S.settings.minutes || 25;
+    render();
+    var c = window.claude;
+    if (!c || !c.use) return;
+    Promise.all([c.use('db'), c.use('user')]).then(function (r) {
+      var db = r[0], user = r[1];
+      if (!db || !user) return null;
+      return user.id().then(function (id) {
+        if (!id) return null;
+        dbRef = db.collection('data/users/' + id).doc('lexora');
+        return dbRef.get().then(function (snap) {
+          if (snap.exists) {
+            adopt(JSON.parse(JSON.stringify(snap.data())));
+            if (UI.f.mode === 'setup') UI.f.minutes = S.settings.minutes || 25;
+            render();
+          } else {
+            return dbRef.set(JSON.parse(JSON.stringify(S)));
+          }
+        });
+      });
+    }).catch(function () { dbRef = null; });
+  }
+
+  /* ---------- AI ---------- */
+  var samplePromise = null;
+  function getSample() {
+    if (!samplePromise) samplePromise = (window.claude && window.claude.use ? window.claude.use('sample') : Promise.resolve(null)).catch(function () { return null; });
+    return samplePromise;
+  }
+  function ai(prompt, tier) {
+    return getSample().then(function (sample) {
+      if (!sample) throw new Error('AI help is only available when this app is open in Claude.');
+      return sample.json(prompt, { modelTier: tier || 'default' });
+    }).catch(function (e) {
+      var code = e && e.code;
+      if (code === 'not_granted') throw new Error('Permission for AI help was declined. Reload and allow it to use this feature.');
+      if (code === 'rate_limited') throw new Error('Too many requests. Wait a moment and try again.');
+      if (code === 'invalid_json') throw new Error('The answer came back garbled. Try again.');
+      throw new Error((e && e.message) || 'Something went wrong. Try again.');
+    });
+  }
+  function breakdownPrompt(t) {
+    return 'You are Lexora, a study planner assistant for middle and high school students. Break the following assignment into 4 to 6 small, actionable steps a student can follow in order. Each step should be clear, concrete, and take roughly 10-40 minutes. Write step titles in English, each a short action starting with a verb.\n' +
+      'Assignment title: ' + t.title + '\nSubject: ' + sname(t.subject) + '\nAssignment type: ' + t.type + '\n\n' +
+      'Reply with only JSON in this shape: {"steps":[{"title":"...","estimated_minutes":20}]}';
+  }
+  function explainPrompt(text, langLabel) {
+    return 'You are Lexora, a warm and patient multilingual study assistant for middle and high school students in the United States. A student entered the text below. It may be English classroom instructions, academic vocabulary, a worksheet prompt, or study material from any subject.\n' +
+      'Help the student truly understand it in ' + langLabel + ', at a level a middle or high school student can follow. Be clear, encouraging, and concrete. Avoid jargon. Do not just give answers to homework; help them understand.\n' +
+      'Reply with only JSON with exactly these fields:\n' +
+      '1. "explanation": a clear explanation in ' + langLabel + '. For a concept, break it down step by step with a simple analogy. For instructions, restate in simple terms what the student needs to do.\n' +
+      '2. "original_translation": a direct, faithful translation of the original text into ' + langLabel + ', separate from the explanation.\n' +
+      '3. "vocabulary": 3 to 6 key terms worth remembering. Each has "term" (the original English word or phrase), "translation" (in ' + langLabel + '), "definition" (short, student-friendly, in ' + langLabel + '), "example" (one example sentence in English).\n' +
+      '4. "quiz": 3 multiple-choice questions that check understanding, not memorization. Each has "question" (in ' + langLabel + '), "options" (exactly 4, in ' + langLabel + '), "correct_index" (integer 0-3), "explanation" (one sentence in ' + langLabel + ' on why the correct option is right).\n\n' +
+      'Text to explain:\n"""\n' + text.slice(0, 4000) + '\n"""';
+  }
+
+  /* ---------- helpers ---------- */
+  function toast(title, opts) {
+    opts = opts || {};
+    var el = document.createElement('div');
+    el.className = 'toast' + (opts.err ? ' err' : '');
+    el.innerHTML = '<div><b>' + esc(title) + '</b>' + (opts.desc ? esc(opts.desc) : '') + '</div>' + (opts.undo ? '<button type="button">Undo</button>' : '');
+    if (opts.undo) el.querySelector('button').addEventListener('click', function () { opts.undo(); el.remove(); });
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(function () { el.remove(); }, opts.undo ? 6000 : 3500);
+  }
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function sortDue(a, b) { var x = a.due_date || '9999', y = b.due_date || '9999'; return x < y ? -1 : x > y ? 1 : 0; }
+  function go(route) { UI.route = route; UI.menu = null; window.scrollTo(0, 0); render(); }
+  function fmtTime(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  function sel(list, cur) { return list.map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === cur ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join(''); }
+  function langOptions(cur) { return LANGS.map(function (l) { return '<option value="' + l[0] + '"' + (l[0] === cur ? ' selected' : '') + '>' + l[2] + '  ' + esc(l[1]) + '</option>'; }).join(''); }
+  function head(icon, title, sub, cls) {
+    return '<div class="pagehead"><div class="titlerow"><span class="chip-ico ' + (cls || '') + '">' + ico(icon) + '</span><h1>' + title + '</h1></div><p class="sub">' + sub + '</p></div>';
+  }
+
+  /* ---------- views ---------- */
+  function vHome() {
+    var t = today(), now = new Date(), h = now.getHours();
+    var greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    var active = S.tasks.filter(function (x) { return x.status !== 'completed'; });
+    var dueToday = active.filter(function (x) { return x.due_date === t; }).length;
+    var inprog = S.tasks.filter(function (x) { return x.status === 'in_progress'; }).length;
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    var todays = S.sessions.filter(function (s) { return s.created >= start; }).sort(function (a, b) { return a.created < b.created ? 1 : -1; });
+    var mins = todays.reduce(function (n, s) { return n + (s.actual_minutes || 0); }, 0);
+    var up = active.filter(function (x) { return x.due_date && x.due_date >= t; }).sort(sortDue).slice(0, 5);
+    var o = '<div class="stack"><div class="pagehead"><p class="sub" style="font-weight:600">' + greet + '</p><h1 class="big">Your learning dashboard</h1><p class="sub">Understand more. Learn smarter.</p></div>';
+    o += '<div class="stats">' +
+      stat('cal', 'amber', dueToday, 'Due Today') + stat('clock', 'blue', inprog, 'In Progress') + stat('timer', 'violet', mins, 'Focus Min Today') + '</div>';
+    o += '<div class="stack-s">' +
+      '<button class="card link" data-a="nav" data-v="language"><span class="chip-ico" style="width:44px;height:44px">' + ico('lang') + '</span><span class="grow"><h3>Language Studio</h3><span class="sub">Understand any text in your language</span></span><span class="muted" style="width:20px">' + ico('arrow') + '</span></button>' +
+      '<button class="card link" data-a="nav" data-v="focus"><span class="chip-ico sun" style="width:44px;height:44px">' + ico('timer') + '</span><span class="grow"><h3>Start Focus Session</h3><span class="sub">Pick a task and get to work</span></span><span class="muted" style="width:20px">' + ico('arrow') + '</span></button></div>';
+    o += '<div class="stack-s"><div class="row between"><h2>Upcoming tasks</h2><button class="linkbtn" style="margin:0;font-size:14px;color:var(--primary)" data-a="nav" data-v="planner">View all</button></div>';
+    if (!up.length) o += '<div class="card center"><p style="font-weight:600;color:var(--fg)">You\'re all caught up!</p><div style="margin-top:12px"><button class="btn sm" data-a="newtask">' + ico('plus') + 'Add a task</button></div></div>';
+    else o += up.map(function (x) {
+      return '<button class="card link" style="padding:14px" data-a="nav" data-v="planner"><span class="badge s-' + sval(x.subject) + '">' + esc(sname(x.subject)) + '</span><span class="grow"><span class="trunc" style="display:block;font-weight:600">' + esc(x.title) + '</span><span class="small muted">' + STATUS[x.status] + '</span></span><span class="small muted" style="font-weight:600">' + dueLabel(x.due_date, true) + '</span></button>';
+    }).join('');
+    o += '</div><div class="stack-s"><h2>Today\'s focus sessions</h2>';
+    if (!todays.length) o += '<div class="card center">No focus sessions yet today. <button class="linkbtn" style="margin:0;font-size:14px;color:var(--primary)" data-a="nav" data-v="focus">Start one →</button></div>';
+    else o += todays.slice(0, 4).map(sessionRow(true)).join('');
+    return o + '</div></div>';
+  }
+  function stat(i, tone, val, label) { return '<div class="card stat"><span class="ico ' + tone + '">' + ico(i) + '</span><div><b>' + val + '</b><span>' + label + '</span></div></div>'; }
+  function sessionRow(time) {
+    return function (s) {
+      var when = new Date(s.created);
+      return '<div class="card row" style="padding:14px"><span class="session-ico">' + ico(time ? 'timer' : 'clock') + '</span><div class="grow"><div class="trunc" style="font-weight:600;font-size:14px">' + esc(s.task_title || 'Free study') + '</div><div class="small muted">' + (s.actual_minutes || 0) + ' min' + (s.has_reflection ? ' · reflected' : '') + '</div></div><span class="small muted">' +
+        (time ? when.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : when.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })) + '</span></div>';
+    };
+  }
+
+  function vPlanner() {
+    var t = today(), list;
+    if (UI.filter === 'today') list = S.tasks.filter(function (x) { return x.due_date === t && x.status !== 'completed'; }).sort(sortDue);
+    else if (UI.filter === 'upcoming') list = S.tasks.filter(function (x) { return x.due_date && x.due_date >= t && x.status !== 'completed'; }).sort(sortDue);
+    else if (UI.filter === 'all') list = S.tasks.filter(function (x) { return x.status !== 'completed'; }).sort(sortDue);
+    else list = S.tasks.filter(function (x) { return x.status === 'completed'; }).sort(function (a, b) { return (a.updated || '') < (b.updated || '') ? 1 : -1; });
+    var o = '<div class="stack"><div class="row between wrap" style="align-items:flex-start">' + head('clip', 'Study Planner', 'Organize assignments, exams, and study tasks.') +
+      '</div><div><button class="btn primary" data-a="newtask">' + ico('plus') + 'New Task</button></div>' +
+      '<div class="seg" role="tablist" style="grid-template-columns:repeat(4,1fr)">' + FILTERS.map(function (f) { return '<button role="tab" aria-selected="' + (UI.filter === f[0]) + '" data-a="filter" data-v="' + f[0] + '">' + f[1] + '</button>'; }).join('') + '</div>';
+    if (!list.length) o += '<div class="card center" style="padding:32px 16px"><span class="muted" style="display:block;width:40px;margin:0 auto 8px">' + ico('list') + '</span><p style="font-weight:600;color:var(--fg)">No tasks here</p><p>Add a task to start planning your study schedule.</p><div style="margin-top:14px"><button class="btn" data-a="newtask">' + ico('plus') + 'Add your first task</button></div></div>';
+    else o += '<div class="stack-s">' + list.map(taskCard).join('') + '</div>';
+    return o + '</div>';
+  }
+  function taskCard(x) {
+    var steps = x.steps || [], done = steps.filter(function (s) { return s.completed; }).length, late = x.due_date && x.due_date < today() && x.status !== 'completed';
+    var due = dueLabel(x.due_date), open = UI.open[x.id], busy = UI.breaking[x.id];
+    var o = '<div class="card task' + (x.status === 'completed' ? ' done' : '') + '"><button class="statusbtn ' + x.status + '" data-a="cycle" data-id="' + x.id + '" aria-label="Status: ' + STATUS[x.status] + '. Tap to change." title="' + STATUS[x.status] + '">' + (x.status === 'completed' ? ico('check') : '') + '</button><div class="grow">' +
+      '<div class="row between" style="align-items:flex-start"><div class="grow"><div class="t">' + esc(x.title) + '</div><div class="meta"><span class="badge s-' + sval(x.subject) + '">' + esc(sname(x.subject)) + '</span><span class="badge p-' + x.priority + '">' + pname(x.priority) + '</span>' +
+      (due ? '<span class="' + (late ? 'late' : '') + '">' + ico('cal') + ' ' + due + '</span>' : '') + (x.estimated_minutes ? '<span>' + ico('clock') + ' ' + x.estimated_minutes + 'm</span>' : '') + (steps.length ? '<span>' + done + '/' + steps.length + ' steps</span>' : '') + '</div></div>' +
+      '<div class="menuwrap"><button class="iconbtn" data-a="menu" data-id="' + x.id + '" aria-label="Task options" aria-haspopup="menu" aria-expanded="' + (UI.menu === x.id) + '">' + ico('more') + '</button>' +
+      (UI.menu === x.id ? '<div class="menu" role="menu"><button role="menuitem" data-a="edit" data-id="' + x.id + '">' + ico('pencil') + 'Edit</button><button role="menuitem" class="red" data-a="del" data-id="' + x.id + '">' + ico('trash') + 'Delete</button></div>' : '') + '</div></div>';
+    if (x.notes) o += '<p class="sub" style="margin-top:8px;overflow-wrap:anywhere">' + esc(x.notes) + '</p>';
+    if (steps.length) {
+      o += '<button class="linkbtn" data-a="expand" data-id="' + x.id + '" aria-expanded="' + !!open + '">' + ico(open ? 'up' : 'down') + (open ? 'Hide steps' : 'Show steps') + ' (' + done + '/' + steps.length + ')</button>';
+      if (open) o += '<div class="steps">' + steps.map(function (s, i) {
+        return '<label class="step' + (s.completed ? ' done' : '') + '" style="font-weight:400"><input type="checkbox" data-a="step" data-id="' + x.id + '" data-i="' + i + '"' + (s.completed ? ' checked' : '') + '><span>' + esc(s.title) + '</span></label>';
+      }).join('') + '</div>';
+    }
+    o += '<div class="row" style="margin-top:12px">' + (!steps.length ? '<button class="btn sm" data-a="breakdown" data-id="' + x.id + '"' + (busy ? ' disabled' : '') + '>' + (busy ? '<span class="spin"></span>Breaking down…' : ico('sparkles') + 'Break into steps') + '</button>' : '') +
+      '<button class="btn sm ghost" data-a="focustask" data-id="' + x.id + '">' + ico('target') + 'Focus</button></div></div></div>';
+    return o;
+  }
+
+  function taskModal() {
+    var m = UI.modal; if (!m) return '';
+    var x = m.task || {};
+    return '<div class="modalback" data-a="closemodal"><form class="modal" id="taskform" role="dialog" aria-modal="true" aria-labelledby="mt" data-keep="1"><div class="row between" style="margin-bottom:16px"><h2 id="mt">' + (m.task ? 'Edit Task' : 'New Task') + '</h2><button type="button" class="iconbtn" data-a="closemodal" aria-label="Close">' + ico('x') + '</button></div>' +
+      '<div class="stack-s" style="gap:14px">' +
+      '<div class="field"><label for="tf-title">Title *</label><input type="text" id="tf-title" name="title" required placeholder="e.g. Chemistry exam review" value="' + esc(x.title || '') + '" autofocus></div>' +
+      '<div class="grid2"><div class="field"><label for="tf-subject">Subject</label><select id="tf-subject" name="subject">' + sel(SUBJECTS, x.subject || 'other') + '</select></div>' +
+      '<div class="field"><label for="tf-type">Type</label><select id="tf-type" name="type">' + sel(TYPES, x.type || 'homework') + '</select></div>' +
+      '<div class="field"><label for="tf-due">Due date</label><input type="date" id="tf-due" name="due_date" value="' + esc(x.due_date || '') + '"></div>' +
+      '<div class="field"><label for="tf-prio">Priority</label><select id="tf-prio" name="priority">' + sel(PRIOS, x.priority || 'medium') + '</select></div></div>' +
+      '<div class="field"><label for="tf-est">Estimated minutes</label><input type="number" id="tf-est" name="estimated_minutes" min="1" placeholder="e.g. 60" value="' + esc(x.estimated_minutes || '') + '"></div>' +
+      '<div class="field"><label for="tf-notes">Notes</label><textarea id="tf-notes" name="notes" style="min-height:80px" placeholder="Any extra details…">' + esc(x.notes || '') + '</textarea></div>' +
+      '<div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-a="closemodal">Cancel</button><button type="submit" class="btn primary">' + (m.task ? 'Save changes' : 'Add task') + '</button></div></div></form></div>';
+  }
+
+  function vLanguage() {
+    var lang = UI.studioLang || S.settings.lang || 'es', L = lname(lang);
+    var o = '<div class="stack">' + head('lang', 'Language Studio', 'Paste any English text and get a clear explanation in your language.') +
+      '<div class="seg" role="tablist" style="grid-template-columns:1fr 1fr;max-width:340px"><button role="tab" aria-selected="' + (UI.tab === 'explain') + '" data-a="studiotab" data-v="explain">Explain</button><button role="tab" aria-selected="' + (UI.tab === 'vocab') + '" data-a="studiotab" data-v="vocab">My Vocabulary</button></div>';
+    if (UI.tab === 'explain') {
+      o += '<div class="card stack-s" style="gap:16px"><div class="field"><label for="studio-lang">Explain in</label><select id="studio-lang" data-bind="studioLang">' + langOptions(lang) + '</select></div>' +
+        '<button class="btn primary lg" data-a="explain"' + (UI.loading ? ' disabled' : '') + '>' + (UI.loading ? '<span class="spin"></span>Explaining…' : ico('sparkles') + 'Explain') + '</button>' +
+        '<div class="field"><label for="studio-input">English text to understand</label><textarea id="studio-input" data-bind="input" placeholder="Paste classroom instructions, vocabulary, or a concept you want to understand…">' + esc(UI.input) + '</textarea></div>' +
+        '<div class="row wrap" style="gap:8px"><span class="small muted">Try:</span>' + SAMPLES.map(function (s, i) { return '<button class="chipbtn" data-a="sample" data-i="' + i + '">' + esc(s.length > 42 ? s.slice(0, 42) + '…' : s) + '</button>'; }).join('') + '</div></div>';
+      if (UI.loading) o += '<div class="card row" style="justify-content:center;padding:40px 16px;color:var(--muted)"><span class="spin"></span>Breaking it down in ' + esc(L[1]) + '…</div>';
+      else if (UI.result) o += resultView(UI.result, L);
+    } else {
+      o += '<div class="row between"><h3>Saved vocabulary</h3><span class="sub">' + S.vocab.length + ' terms</span></div>';
+      if (!S.vocab.length) o += '<div class="card center" style="padding:32px 16px"><span class="muted" style="display:block;width:32px;margin:0 auto 8px">' + ico('book') + '</span><p style="font-weight:600;color:var(--fg)">No saved vocabulary yet</p><p>Save terms from the Explain tab to review them here.</p></div>';
+      else o += '<div class="vgrid">' + S.vocab.map(function (v) {
+        var vl = lname(v.explanation_language), rt = vl[3] ? ' rtl' : '';
+        return '<div class="card term" style="padding:14px"><div class="row between" style="align-items:flex-start"><div class="grow"><b>' + esc(v.term) + '</b><div class="sub' + rt + '">' + esc(v.translation) + '</div></div><button class="iconbtn" data-a="delvocab" data-id="' + v.id + '" aria-label="Delete ' + esc(v.term) + '">' + ico('trash') + '</button></div>' +
+          (v.definition ? '<p class="' + rt + '" style="margin-top:8px;font-size:14px">' + esc(v.definition) + '</p>' : '') + (v.example ? '<p class="ex">“' + esc(v.example) + '”</p>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+    return o + '</div>';
+  }
+  function resultView(r, L) {
+    var rt = L[3] ? ' rtl' : '';
+    var o = '<div class="stack-s" style="gap:16px"><div class="card"><div class="row" style="margin-bottom:8px;gap:8px"><span style="width:16px;color:var(--primary)">' + ico('sparkles') + '</span><h3>Explanation</h3><span class="small muted">in ' + esc(L[1]) + '</span></div><div class="prose' + rt + '">' + esc(r.explanation) + '</div></div>';
+    if (r.original_translation) o += '<div class="card flat" style="background:var(--soft)"><div class="row" style="margin-bottom:8px;gap:8px"><span style="width:16px;color:var(--muted)">' + ico('lang') + '</span><h3 style="font-size:14px">Direct translation</h3></div><div class="prose muted' + rt + '">' + esc(r.original_translation) + '</div></div>';
+    if (r.vocabulary.length) {
+      o += '<h3 style="margin-top:4px">Key vocabulary</h3><div class="vgrid">' + r.vocabulary.map(function (v, i) {
+        var sv = UI.saved[v.term];
+        return '<div class="card term" style="padding:14px"><div class="row between" style="align-items:flex-start"><div class="grow"><b>' + esc(v.term) + '</b><div class="sub' + rt + '">' + esc(v.translation) + '</div></div><button class="btn sm' + (sv ? '' : '') + '" data-a="saveterm" data-i="' + i + '"' + (sv ? ' disabled' : '') + ' aria-label="' + (sv ? 'Saved' : 'Save ' + esc(v.term)) + '">' + ico(sv ? 'check' : 'bookmark') + '</button></div>' +
+          (v.definition ? '<p class="' + rt + '" style="margin-top:8px;font-size:14px">' + esc(v.definition) + '</p>' : '') + (v.example ? '<p class="ex">“' + esc(v.example) + '”</p>' : '') + '</div>';
+      }).join('') + '</div>';
+    }
+    if (r.quiz.length) o += '<h3 style="margin-top:4px">Check your understanding</h3>' + quizView(r.quiz, rt);
+    return o + '</div>';
+  }
+  function quizView(qs, rt) {
+    var score = qs.filter(function (q, i) { return UI.answers[i] === q.correct_index; }).length;
+    var all = qs.every(function (q, i) { return UI.answers[i] !== undefined; });
+    var o = '<div class="stack-s">';
+    if (UI.checked) o += '<div class="card row between" style="background:' + (score === qs.length ? 'var(--good-soft)' : 'var(--info-soft)') + '"><div><h3>' + (score === qs.length ? 'Perfect!' : score + ' of ' + qs.length + ' correct') + '</h3><p class="sub">' + (score === qs.length ? 'You understood this well.' : 'Review the explanations and try again.') + '</p></div><button class="btn sm" data-a="quizretry">' + ico('undo') + 'Retry</button></div>';
+    qs.forEach(function (q, qi) {
+      o += '<div class="card"><p style="font-weight:600;margin-bottom:12px" class="' + rt + '">' + (qi + 1) + '. ' + esc(q.question) + '</p><div class="stack-s" style="gap:8px">';
+      q.options.forEach(function (op, oi) {
+        var s = UI.answers[qi] === oi, ok = UI.checked && oi === q.correct_index, no = UI.checked && s && oi !== q.correct_index;
+        var cls = 'opt' + (!UI.checked && s ? ' sel' : '') + (ok ? ' ok' : '') + (no ? ' no' : '') + (UI.checked && !ok && !no ? ' dim' : '');
+        o += '<button class="' + cls + (rt ? ' rtl' : '') + '" data-a="pick" data-q="' + qi + '" data-o="' + oi + '"' + (UI.checked ? ' disabled' : '') + '><span class="k">' + (ok ? ico('check') : no ? ico('x') : String.fromCharCode(65 + oi)) + '</span><span class="grow">' + esc(op) + '</span></button>';
+      });
+      o += '</div>' + (UI.checked && q.explanation ? '<div class="why ' + rt + '">' + ico('bulb') + '<p>' + esc(q.explanation) + '</p></div>' : '') + '</div>';
+    });
+    if (!UI.checked) o += '<button class="btn primary lg" data-a="quizcheck"' + (all ? '' : ' disabled') + '>' + (all ? 'Check answers' : 'Answer all questions (' + Object.keys(UI.answers).length + '/' + qs.length + ')') + '</button>';
+    return o + '</div>';
+  }
+
+  function vFocus() {
+    var f = UI.f, open = S.tasks.filter(function (x) { return x.status !== 'completed'; }).sort(sortDue);
+    var task = byId(S.tasks, f.taskId);
+    var o = '<div class="stack">' + head('timer', 'Focus Mode', 'Pick a task, set a timer, and focus on one thing.', 'sun');
+    if (f.mode === 'setup') {
+      o += '<div class="card stack-s" style="gap:22px"><div class="field"><label for="f-task">What are you working on?</label><select id="f-task" data-bind="ftask"><option value="free">Free study (no specific task)</option>' +
+        open.map(function (x) { return '<option value="' + x.id + '"' + (x.id === f.taskId ? ' selected' : '') + '>' + esc(x.title) + '</option>'; }).join('') + '</select>' +
+        (task ? '<p class="small muted">' + esc(sname(task.subject)) + (task.due_date ? ' · due ' + task.due_date : '') + '</p>' : '') + '</div>' +
+        '<div class="field"><span class="lbl">How long?</span><div class="presets">' + [15, 25, 45, 60].map(function (m) { return '<button class="preset" aria-pressed="' + (f.minutes === m) + '" data-a="preset" data-v="' + m + '">' + m + 'm</button>'; }).join('') + '</div></div>' +
+        '<div class="field"><span class="lbl row" style="gap:8px"><span style="width:16px;color:var(--muted)">' + ico('ban') + '</span>Distractions to avoid</span><p class="small muted">Add sites or apps that pull you away (e.g. youtube.com, Instagram). They stay on your "off limits" list until you finish.</p>' +
+        '<div class="row"><input type="text" id="f-dist" placeholder="e.g. youtube.com" autocomplete="off" aria-label="Distraction to avoid"><button class="btn" data-a="adddist" aria-label="Add distraction" style="width:42px;padding:0">' + ico('plus') + '</button></div>' + distPills(true) + '</div>' +
+        '<button class="btn primary lg" data-a="fstart">' + ico('play') + 'Start focusing</button></div>';
+      o += '<div class="stack-s"><h2 style="font-size:18px">Recent focus sessions</h2>' + (S.sessions.length ? S.sessions.slice().sort(function (a, b) { return a.created < b.created ? 1 : -1; }).slice(0, 5).map(sessionRow(false)).join('') : '<div class="card center">No sessions yet. Start your first one above!</div>') + '</div>';
+    } else if (f.mode === 'running' || f.mode === 'paused') {
+      var r = 120, c = 2 * Math.PI * r, p = f.minutes > 0 ? (f.minutes * 60 - f.remaining) / (f.minutes * 60) : 0;
+      o += '<div class="timerwrap"><p class="sub" style="font-weight:600;text-align:center">' + esc(task ? task.title : 'Free study') + '</p><div class="ring"><svg viewBox="0 0 288 288"><circle class="track" cx="144" cy="144" r="' + r + '" fill="none" stroke-width="14"/><circle class="prog" id="ringp" cx="144" cy="144" r="' + r + '" fill="none" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + c + '" stroke-dashoffset="' + (c - p * c) + '"/></svg>' +
+        '<div class="time"><b id="tleft">' + fmtTime(f.remaining) + '</b><span id="tstate">' + (f.mode === 'paused' ? 'Paused' : 'Focusing…') + '</span></div></div>' +
+        '<div class="row wrap" style="justify-content:center">' + (f.mode === 'running' ? '<button class="btn" style="height:48px" data-a="fpause">' + ico('pause') + 'Pause</button>' : '<button class="btn primary" style="height:48px" data-a="fresume">' + ico('play') + 'Resume</button>') +
+        '<button class="btn primary" style="height:48px" data-a="ffinish">' + ico('ok') + 'Finish</button><button class="btn ghost" style="height:48px" data-a="freset" aria-label="Cancel session">' + ico('undo') + '</button></div>' +
+        (f.dist.length ? '<div class="stack-s" style="align-items:center"><span class="small muted" style="font-weight:600">Off limits until you finish</span>' + distPills(false) + '</div>' : '') + '</div>';
+    } else {
+      var rf = UI.refl;
+      o += '<div class="stack-s" style="gap:16px"><div class="card done-banner"><span class="ico">' + ico('ok') + '</span><div><h3 style="font-size:18px">Session complete!</h3><p class="sub">You focused for ' + f.actual + ' minute' + (f.actual === 1 ? '' : 's') + '.</p></div></div>' +
+        '<form class="card stack-s" id="reflform" style="gap:16px"><div class="row" style="gap:8px"><span style="width:20px;color:var(--sun)">' + ico('bulb') + '</span><h3 style="font-size:18px">Learning reflection</h3></div><p class="sub">Take a moment to reflect. This helps you learn smarter, not just longer.</p>' +
+        '<div class="field"><label for="r1">What did you complete?</label><textarea id="r1" data-bind="r1" style="min-height:70px" placeholder="I finished…">' + esc(rf.reflection_what_completed) + '</textarea></div>' +
+        '<div class="field"><label for="r2">What was most difficult?</label><textarea id="r2" data-bind="r2" style="min-height:70px" placeholder="The hardest part was…">' + esc(rf.reflection_what_difficult) + '</textarea></div>' +
+        '<div class="field"><span class="lbl">Did you understand what you studied?</span><div class="radios">' + [['yes', 'Yes, I get it', 'I understand the concepts'], ['partially', 'Partially', 'Some parts are still unclear'], ['no', 'Not yet', 'I need more help']].map(function (u) {
+          return '<label class="radio"><span><input type="radio" name="understood" value="' + u[0] + '" data-bind="ru"' + (rf.reflection_understood === u[0] ? ' checked' : '') + '>' + u[1] + '</span><small>' + u[2] + '</small></label>';
+        }).join('') + '</div></div>' +
+        '<div class="field"><label for="r4">What should you do next?</label><textarea id="r4" data-bind="r4" style="min-height:70px" placeholder="Next time I will…">' + esc(rf.reflection_next_step) + '</textarea></div>' +
+        '<div class="row" style="justify-content:flex-end"><button type="button" class="btn ghost" data-a="freset">' + ico('skip') + 'Skip</button><button type="submit" class="btn primary">' + ico('ok') + 'Save reflection</button></div></form></div>';
+    }
+    return o + '</div>';
+  }
+  function distPills(removable) {
+    var d = UI.f.dist;
+    if (!d.length) return '';
+    return '<div class="pills">' + d.map(function (x, i) { return removable ? '<span class="pill">' + esc(x) + '<button data-a="remdist" data-i="' + i + '" aria-label="Remove ' + esc(x) + '">' + ico('x') + '</button></span>' : '<span class="pill static">' + esc(x) + '</span>'; }).join('') + '</div>';
+  }
+
+  function vSettings() {
+    var d = UI.draft || (UI.draft = { lang: S.settings.lang, minutes: S.settings.minutes });
+    return '<div class="stack">' + head('gear', 'Settings', 'Personalize your Lexora experience.') +
+      '<div class="card stack-s" style="gap:22px"><div class="field"><label for="s-lang">Preferred explanation language</label><p class="sub">Default language for Language Studio explanations.</p><select id="s-lang" data-bind="slang">' + langOptions(d.lang) + '</select></div>' +
+      '<div class="field"><label for="s-min">Default focus session length</label><p class="sub">Preset timer for Focus Mode.</p><select id="s-min" data-bind="smin">' + [15, 25, 45, 60].map(function (m) { return '<option value="' + m + '"' + (m === d.minutes ? ' selected' : '') + '>' + m + ' minutes</option>'; }).join('') + '</select></div>' +
+      '<div><button class="btn primary" data-a="savesettings">' + ico('check') + 'Save settings</button></div></div>' +
+      '<div class="card danger-zone stack-s"><h3>Delete my data</h3><p class="sub">Permanently remove all of your tasks, focus sessions, and saved vocabulary.</p>' +
+      (UI.confirmDelete ? '<p style="font-weight:600;font-size:14px">This cannot be undone. Delete everything?</p><div class="row"><button class="btn danger" data-a="wipe">' + ico('trash') + 'Yes, delete everything</button><button class="btn" data-a="wipecancel">Cancel</button></div>' : '<div><button class="btn danger-o" data-a="wipeask">' + ico('trash') + 'Delete my data</button></div>') + '</div></div>';
+  }
+
+  function render() {
+    var v = document.getElementById('view');
+    var html = UI.route === 'home' ? vHome() : UI.route === 'planner' ? vPlanner() : UI.route === 'language' ? vLanguage() : UI.route === 'focus' ? vFocus() : vSettings();
+    v.innerHTML = html;
+    document.getElementById('tabs').innerHTML = NAV.map(function (n) { return '<button class="tab" data-a="nav" data-v="' + n[0] + '"' + (UI.route === n[0] ? ' aria-current="page"' : '') + '>' + ico(n[2]) + n[1] + '</button>'; }).join('');
+    document.getElementById('logo').innerHTML = ico('book');
+    var m = document.getElementById('modal'), had = m.firstChild;
+    if (UI.modal) { if (!had) { m.innerHTML = taskModal(); var t = document.getElementById('tf-title'); if (t) t.focus(); } } else m.innerHTML = '';
+  }
+
+  /* ---------- focus timer ---------- */
+  function startTick() {
+    clearInterval(tick);
+    tick = setInterval(function () {
+      var f = UI.f; if (f.mode !== 'running') return;
+      f.remaining = Math.max(0, Math.ceil((f.endAt - Date.now()) / 1000));
+      var el = document.getElementById('tleft'); if (el) el.textContent = fmtTime(f.remaining);
+      var rp = document.getElementById('ringp');
+      if (rp) { var c = 2 * Math.PI * 120, p = (f.minutes * 60 - f.remaining) / (f.minutes * 60); rp.setAttribute('stroke-dashoffset', c - p * c); }
+      if (f.remaining <= 0) finishSession();
+    }, 250);
+  }
+  function finishSession() {
+    var f = UI.f; if (f.mode !== 'running' && f.mode !== 'paused') return;
+    clearInterval(tick);
+    var elapsed = f.minutes * 60 - f.remaining, actual = Math.max(1, Math.round(elapsed / 60));
+    var task = byId(S.tasks, f.taskId), id = uid();
+    S.sessions.push({ id: id, task_id: task ? task.id : '', task_title: task ? task.title : 'Free study', subject: task ? task.subject : '', planned_minutes: f.minutes, actual_minutes: actual, status: 'completed', has_reflection: false, created: new Date().toISOString() });
+    persist();
+    f.sessionId = id; f.actual = actual; f.mode = 'done';
+    UI.refl = { reflection_what_completed: '', reflection_what_difficult: '', reflection_understood: '', reflection_next_step: '' };
+    toast('Session saved!', { desc: actual + ' min focused.' });
+    render();
+  }
+  function resetFocus() { clearInterval(tick); var f = UI.f; f.mode = 'setup'; f.sessionId = null; f.remaining = 0; f.dist = []; f.minutes = S.settings.minutes || 25; render(); }
+
+  /* ---------- actions ---------- */
+  var A = {
+    nav: function (el) { go(el.dataset.v); },
+    filter: function (el) { UI.filter = el.dataset.v; UI.menu = null; render(); },
+    newtask: function () { go('planner'); UI.modal = { task: null }; render(); },
+    closemodal: function (el, e) { if (e.target !== el && el.classList.contains('modalback')) return; UI.modal = null; render(); },
+    cycle: function (el) {
+      var t = byId(S.tasks, el.dataset.id); if (!t) return;
+      t.status = FLOW[(FLOW.indexOf(t.status) + 1) % 3]; t.updated = new Date().toISOString(); persist(); render();
+    },
+    step: function (el) {
+      var t = byId(S.tasks, el.dataset.id); if (!t) return;
+      var s = t.steps[+el.dataset.i]; if (s) s.completed = el.checked; t.updated = new Date().toISOString(); persist(); render();
+    },
+    expand: function (el) { UI.open[el.dataset.id] = !UI.open[el.dataset.id]; render(); },
+    menu: function (el) { UI.menu = UI.menu === el.dataset.id ? null : el.dataset.id; render(); },
+    edit: function (el) { UI.modal = { task: byId(S.tasks, el.dataset.id) }; UI.menu = null; render(); },
+    del: function (el) {
+      var i = S.tasks.findIndex(function (t) { return t.id === el.dataset.id; }); if (i < 0) return;
+      var gone = S.tasks.splice(i, 1)[0]; UI.menu = null; persist(); render();
+      toast('Task deleted', { undo: function () { S.tasks.splice(Math.min(i, S.tasks.length), 0, gone); persist(); render(); } });
+    },
+    breakdown: function (el) {
+      var t = byId(S.tasks, el.dataset.id); if (!t || UI.breaking[t.id]) return;
+      UI.breaking[t.id] = true; render();
+      ai(breakdownPrompt(t), 'quick').then(function (r) {
+        var steps = (r && r.steps || []).filter(function (s) { return s && s.title; }).map(function (s) { return { title: String(s.title), completed: false }; });
+        if (!steps.length) throw new Error('No steps came back. Try again.');
+        t.steps = steps; t.updated = new Date().toISOString(); UI.open[t.id] = true; persist();
+        toast('Broke down into ' + steps.length + ' steps');
+      }).catch(function (e) { toast('Breakdown failed', { err: true, desc: e.message }); })
+        .then(function () { delete UI.breaking[t.id]; render(); });
+    },
+    focustask: function (el) { UI.f.taskId = el.dataset.id; UI.f.mode = 'setup'; go('focus'); },
+    studiotab: function (el) { UI.tab = el.dataset.v; render(); },
+    sample: function (el) { UI.input = SAMPLES[+el.dataset.i]; render(); },
+    explain: function () {
+      if (!UI.input.trim()) { toast('Please enter some text first', { err: true }); return; }
+      var lang = UI.studioLang || S.settings.lang || 'es';
+      UI.loading = true; UI.result = null; UI.saved = {}; UI.answers = {}; UI.checked = false; render();
+      ai(explainPrompt(UI.input, lname(lang)[4]), 'default').then(function (r) {
+        if (!r || !r.explanation) throw new Error('No result returned. Try again.');
+        r.vocabulary = Array.isArray(r.vocabulary) ? r.vocabulary.filter(function (v) { return v && v.term; }) : [];
+        r.quiz = Array.isArray(r.quiz) ? r.quiz.filter(function (q) { return q && q.question && Array.isArray(q.options) && q.options.length > 1 && Number.isInteger(q.correct_index); }) : [];
+        r.explanationLang = lang; UI.result = r;
+      }).catch(function (e) { toast('Something went wrong', { err: true, desc: e.message }); })
+        .then(function () { UI.loading = false; render(); });
+    },
+    saveterm: function (el) {
+      var v = UI.result && UI.result.vocabulary[+el.dataset.i]; if (!v) return;
+      S.vocab.unshift({ id: uid(), term: v.term, translation: v.translation || '', definition: v.definition || '', example: v.example || '', explanation_language: UI.result.explanationLang || S.settings.lang, created: new Date().toISOString() });
+      UI.saved[v.term] = true; persist(); toast('Saved to vocabulary', { desc: v.term }); render();
+    },
+    delvocab: function (el) { S.vocab = S.vocab.filter(function (v) { return v.id !== el.dataset.id; }); persist(); render(); },
+    pick: function (el) { if (UI.checked) return; UI.answers[+el.dataset.q] = +el.dataset.o; render(); },
+    quizcheck: function () { UI.checked = true; render(); },
+    quizretry: function () { UI.answers = {}; UI.checked = false; render(); },
+    preset: function (el) { UI.f.minutes = +el.dataset.v; render(); },
+    adddist: function () {
+      var i = document.getElementById('f-dist'), v = i && i.value.trim(); if (!v) return;
+      if (UI.f.dist.indexOf(v) < 0) UI.f.dist.push(v); render(); var n = document.getElementById('f-dist'); if (n) n.focus();
+    },
+    remdist: function (el) { UI.f.dist.splice(+el.dataset.i, 1); render(); },
+    fstart: function () { var f = UI.f; f.remaining = f.minutes * 60; f.endAt = Date.now() + f.remaining * 1000; f.mode = 'running'; startTick(); render(); },
+    fpause: function () { var f = UI.f; f.remaining = Math.max(0, Math.ceil((f.endAt - Date.now()) / 1000)); f.mode = 'paused'; render(); },
+    fresume: function () { var f = UI.f; f.endAt = Date.now() + f.remaining * 1000; f.mode = 'running'; render(); },
+    ffinish: function () { finishSession(); },
+    freset: function () { resetFocus(); },
+    savesettings: function () {
+      var d = UI.draft; S.settings.lang = d.lang; S.settings.minutes = d.minutes; UI.studioLang = null; persist();
+      if (UI.f.mode === 'setup') UI.f.minutes = d.minutes; toast('Settings saved'); render();
+    },
+    wipeask: function () { UI.confirmDelete = true; render(); },
+    wipecancel: function () { UI.confirmDelete = false; render(); },
+    wipe: function () { S.tasks = []; S.sessions = []; S.vocab = []; UI.confirmDelete = false; UI.result = null; persist(); toast('All data deleted'); render(); }
+  };
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-a]');
+    if (UI.menu && !e.target.closest('.menu') && !(el && el.dataset.a === 'menu')) { UI.menu = null; if (!el) { render(); return; } }
+    if (!el || el.tagName === 'INPUT') return;
+    var fn = A[el.dataset.a]; if (fn) fn(el, e);
+  });
+  document.addEventListener('change', function (e) {
+    var el = e.target;
+    if (el.tagName === 'INPUT' && el.dataset.a === 'step') A.step(el);
+  });
+  document.addEventListener('input', function (e) {
+    var el = e.target, b = el.dataset && el.dataset.bind; if (!b) return;
+    if (b === 'input') UI.input = el.value;
+    else if (b === 'r1') UI.refl.reflection_what_completed = el.value;
+    else if (b === 'r2') UI.refl.reflection_what_difficult = el.value;
+    else if (b === 'r4') UI.refl.reflection_next_step = el.value;
+    else if (b === 'ru') UI.refl.reflection_understood = el.value;
+  });
+  document.addEventListener('change', function (e) {
+    var el = e.target, b = el.dataset && el.dataset.bind; if (!b) return;
+    if (b === 'studioLang') UI.studioLang = el.value;
+    else if (b === 'ftask') { UI.f.taskId = el.value; render(); }
+    else if (b === 'slang') UI.draft.lang = el.value;
+    else if (b === 'smin') UI.draft.minutes = +el.value;
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && UI.modal) { UI.modal = null; render(); }
+    if (e.key === 'Enter' && e.target.id === 'f-dist') { e.preventDefault(); A.adddist(); }
+  });
+  document.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = e.target;
+    if (form.id === 'taskform') {
+      var d = new FormData(form), title = String(d.get('title') || '').trim(); if (!title) return;
+      var data = { title: title, subject: d.get('subject'), type: d.get('type'), due_date: d.get('due_date') || '', priority: d.get('priority'), estimated_minutes: d.get('estimated_minutes') ? Number(d.get('estimated_minutes')) : 0, notes: String(d.get('notes') || '').trim() };
+      var now = new Date().toISOString();
+      if (UI.modal.task) { Object.assign(UI.modal.task, data, { updated: now }); toast('Task updated'); }
+      else { S.tasks.push(Object.assign({ id: uid(), status: 'not_started', steps: [], created: now, updated: now }, data)); toast('Task added'); }
+      UI.modal = null; persist(); render();
+    } else if (form.id === 'reflform') {
+      var s = byId(S.sessions, UI.f.sessionId);
+      if (s) { Object.assign(s, UI.refl, { has_reflection: true }); persist(); }
+      toast('Reflection saved'); resetFocus();
+    }
+  });
+
+  boot();
+})();
+</script>
+
+</body></html>
