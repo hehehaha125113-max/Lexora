@@ -379,28 +379,67 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
   }
 
   /* ---------- AI ---------- */
-  var samplePromise = null;
-  function getSample() {
-    if (!samplePromise) samplePromise = (window.claude && window.claude.use ? window.claude.use('sample') : Promise.resolve(null)).catch(function () { return null; });
-    return samplePromise;
-  }
+  // 1. 設定你的 Cloudflare Worker 網址
+  var WORKER_URL = 'https://workers.dev';
+
+  // 2. 改裝後的全新 ai 函式，直接連線到你的 Worker
   function ai(prompt, tier) {
-    return getSample().then(function (sample) {
-      if (!sample) throw new Error('AI help is only available when this app is open in Claude.');
-      return sample.json(prompt, { modelTier: tier || 'default' });
-    }).catch(function (e) {
-      var code = e && e.code;
-      if (code === 'not_granted') throw new Error('Permission for AI help was declined. Reload and allow it to use this feature.');
-      if (code === 'rate_limited') throw new Error('Too many requests. Wait a moment and try again.');
-      if (code === 'invalid_json') throw new Error('The answer came back garbled. Try again.');
-      throw new Error((e && e.message) || 'Something went wrong. Try again.');
+    return fetch(WORKER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt: prompt })
+    })
+    .then(function (response) {
+      if (!response.ok) {
+        throw new Error('Server responded with status ' + response.status);
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      var textResult = data.text;
+      if (!textResult) throw new Error('invalid_json');
+
+      // 移除 Gemini 有時會自動包裹的 markdown 語法 (```json ... ```)
+      if (typeof textResult === 'string') {
+        textResult = textResult.trim();
+        if (textResult.startsWith('```json')) {
+          textResult = textResult.substring(7);
+        } else if (textResult.startsWith('```')) {
+          textResult = textResult.substring(3);
+        }
+        if (textResult.endsWith('```')) {
+          textResult = textResult.substring(0, textResult.length - 3);
+        }
+        textResult = textResult.trim();
+      }
+      
+      try {
+        // 如果原本就是物件就直接回傳，否則將乾淨的字串解析為 JSON 物件
+        return typeof textResult === 'object' ? textResult : JSON.parse(textResult);
+      } catch (parseError) {
+        throw new Error('invalid_json');
+      }
+    })
+    .catch(function (e) {
+      var msg = e && e.message;
+      if (msg === 'invalid_json') throw new Error('The answer came back garbled. Try again.');
+      throw new Error('Something went wrong. Try again. (' + (msg || 'Connection error') + ')');
     });
   }
+
+  // 以下 Prompt 函式完全保留你原本的邏輯與規格
   function breakdownPrompt(t) {
     return 'You are Lexora, a study planner assistant for middle and high school students. Break the following assignment into 4 to 6 small, actionable steps a student can follow in order. Each step should be clear, concrete, and take roughly 10-40 minutes. Write step titles in English, each a short action starting with a verb.\n' +
       'Assignment title: ' + t.title + '\nSubject: ' + sname(t.subject) + '\nAssignment type: ' + t.type + '\n\n' +
       'Reply with only JSON in this shape: {"steps":[{"title":"...","estimated_minutes":20}]}';
   }
+
   function explainPrompt(text, langLabel) {
     return 'You are Lexora, a warm and patient multilingual study assistant for middle and high school students in the United States. A student entered the text below. It may be English classroom instructions, academic vocabulary, a worksheet prompt, or study material from any subject.\n' +
       'Help the student truly understand it in ' + langLabel + ', at a level a middle or high school student can follow. Be clear, encouraging, and concrete. Avoid jargon. Do not just give answers to homework; help them understand.\n' +
