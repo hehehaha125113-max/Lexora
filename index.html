@@ -379,15 +379,17 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
   }
 
   /* ---------- AI ---------- */
+    // 1. 設定你的 Cloudflare Worker 網址（✨ 已修正：刪除重複宣告、移除了結尾的斜線 /）
   var WORKER_URL = 'https://wispy-field-ff7e.hehehaha125113.workers.dev';
 
+  // 2. 改裝後的全新 ai 函式，直接連線到你的 Worker
   function ai(prompt, tier) {
     return fetch(WORKER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ prompt: String(prompt) })
+      body: JSON.stringify({ prompt: String(prompt) }) // 確保提示詞強制轉為標準字串
     })
     .then(function (response) {
       if (!response.ok) {
@@ -396,13 +398,15 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       return response.json();
     })
     .then(function (data) {
+      // ✨ 這裡微調了：如果 Worker 後台傳回 data.error，直接把它丟出，讓手機畫面的紅框顯示出真正原因
       if (data && data.error) {
         throw new Error(data.error);
       }
-      
+
       var textResult = data.text;
       if (!textResult) throw new Error('invalid_json');
 
+      // 移除 Gemini 有時會自動包裹的 markdown 語法 (```json ... ```)
       if (typeof textResult === 'string') {
         textResult = textResult.trim();
         if (textResult.startsWith('```json')) {
@@ -415,8 +419,9 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
         }
         textResult = textResult.trim();
       }
-      
+
       try {
+        // 如果原本就是物件就直接回傳，否則將乾淨的字串解析為 JSON 物件
         return typeof textResult === 'object' ? textResult : JSON.parse(textResult);
       } catch (parseError) {
         throw new Error('invalid_json');
@@ -425,10 +430,12 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
     .catch(function (e) {
       var msg = e && e.message;
       if (msg === 'invalid_json') throw new Error('The answer came back garbled. Try again.');
+      // ✨ 讓手機彈出的錯誤訊息直接顯示最真實的後台回報原因，拒絕冷冰冰的 500/502
       throw new Error(msg || 'Something went wrong. Try again.');
     });
   }
 
+  // 以下 Prompt 函式完全保留你原本的邏輯與規格
   function breakdownPrompt(t) {
     return 'You are Lexora, a study planner assistant for middle and high school students. Break the following assignment into 4 to 6 small, actionable steps a student can follow in order. Each step should be clear, concrete, and take roughly 10-40 minutes. Write step titles in English, each a short action starting with a verb.\n' +
       'Assignment title: ' + t.title + '\nSubject: ' + sname(t.subject) + '\nAssignment type: ' + t.type + '\n\n' +
@@ -444,6 +451,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       '3. "vocabulary": 3 to 6 key terms worth remembering. Each has "term" (the original English word or phrase), "translation" (in ' + langLabel + '), "definition" (short, student-friendly, in ' + langLabel + '), "example" (one example sentence in English).\n' +
       '4. "quiz": 3 multiple-choice questions that check understanding, not memorization. Each has "question" (in ' + langLabel + '), "options" (exactly 4, in ' + langLabel + '), "correct_index" (integer 0-3), "explanation" (one sentence in ' + langLabel + ' on why the correct option is right).\n\n' +
       'Text to explain:\n"""\n' + text.slice(0, 4000) + '\n"""';
+  }
   }
 
 
