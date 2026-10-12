@@ -494,10 +494,8 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
   }
 
   /* ---------- AI ---------- */
-      // 1. 直連 Google Gemini 官方端點（✨ 已幫你填入 100% 正確的 AQ. 金鑰，徹底跳過 Cloudflare！）
-  var GEMINI_API_KEY = 'AQ.Ab8RN6LZxokG9O-l0tGd3l5uT3q0s_tp7JYP0KPTPbohifigXQ';
+        var GEMINI_API_KEY = 'AQ.Ab8RN6LZxokG9O-l0tGd3l5uT3q0s_tp7JYP0KPTPbohifigXQ';
 
-  // 2. 滿血復活的全新 ai 函式，直接連線至 Google 伺服器
   function ai(prompt, tier) {
     var geminiUrl = 'https://googleapis.com' + GEMINI_API_KEY;
 
@@ -521,7 +519,10 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
         throw new Error(data.error.message);
       }
       
-      // 提取 Gemini 的文本回覆
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+        throw new Error('invalid_json');
+      }
+
       var textResult = data.candidates[0].content.parts[0].text;
       if (!textResult) throw new Error('invalid_json');
 
