@@ -379,17 +379,17 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
   }
 
   /* ---------- AI ---------- */
-    // 1. 設定你的 Cloudflare Worker 網址
-  var WORKER_URL = 'https://wispy-field-ff7e.hehehaha125113.workers.dev/';
+      // 1. 設定你的 Cloudflare Worker 網址（✨ 已經幫你移除結尾的斜線 /，解決連線錯誤問題）
+  var WORKER_URL = 'https://wispy-field-ff7e.hehehaha125113.workers.dev';
 
-  // 2. 改裝後的全新 ai 函式，直接連線到你的 Worker
+  // 2. 微調後的全新 ai 函式，能完美接收來自 Worker 的詳細錯誤字串
   function ai(prompt, tier) {
     return fetch(WORKER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({ prompt: String(prompt) }) // 確保提示詞強制轉為標準字串
     })
     .then(function (response) {
       if (!response.ok) {
@@ -398,7 +398,8 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       return response.json();
     })
     .then(function (data) {
-      if (data.error) {
+      // ✨ 這裡微調了：如果 Worker 回傳 data.error，直接把它丟出，讓手機畫面的紅框顯示出真正原因
+      if (data && data.error) {
         throw new Error(data.error);
       }
       
@@ -427,7 +428,8 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
     .catch(function (e) {
       var msg = e && e.message;
       if (msg === 'invalid_json') throw new Error('The answer came back garbled. Try again.');
-      throw new Error('Something went wrong. Try again. (' + (msg || 'Connection error') + ')');
+      // ✨ 讓手機彈出的錯誤訊息直接顯示最真實的後台回報
+      throw new Error(msg || 'Something went wrong. Try again.');
     });
   }
 
@@ -446,6 +448,8 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       '3. "vocabulary": 3 to 6 key terms worth remembering. Each has "term" (the original English word or phrase), "translation" (in ' + langLabel + '), "definition" (short, student-friendly, in ' + langLabel + '), "example" (one example sentence in English).\n' +
       '4. "quiz": 3 multiple-choice questions that check understanding, not memorization. Each has "question" (in ' + langLabel + '), "options" (exactly 4, in ' + langLabel + '), "correct_index" (integer 0-3), "explanation" (one sentence in ' + langLabel + ' on why the correct option is right).\n\n' +
       'Text to explain:\n"""\n' + text.slice(0, 4000) + '\n"""';
+  }
+
   }
 
 
