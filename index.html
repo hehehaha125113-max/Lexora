@@ -494,7 +494,7 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
   }
 
   /* ---------- AI ---------- */
-        var GEMINI_API_KEY = 'AQ.Ab8RN6LZxokG9O-l0tGd3l5uT3q0s_tp7JYP0KPTPbohifigXQ';
+          var GEMINI_API_KEY = 'AQ.Ab8RN6LZxokG9O-l0tGd3l5uT3q0s_tp7JYP0KPTPbohifigXQ';
 
   function ai(prompt, tier) {
     var geminiUrl = 'https://googleapis.com' + GEMINI_API_KEY;
@@ -568,6 +568,12 @@ input::placeholder, textarea::placeholder { color: var(--muted); opacity: .8; }
       '4. "quiz": 3 multiple-choice questions that check understanding, not memorization. Each has "question" (in ' + langLabel + '), "options" (exactly 4, in ' + langLabel + '), "correct_index" (integer 0-3), "explanation" (one sentence in ' + langLabel + ' on why the correct option is right).\n\n' +
       'Text to explain:\n"""\n' + text.slice(0, 4000) + '\n"""';
   }
+
+})();
+</script>
+</body>
+</html>
+
 
   /* ---------- helpers ---------- */
   function toast(title, opts) {
